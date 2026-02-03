@@ -22,63 +22,49 @@ ampules <- c(16,9,17,12,22,13,8,15,19,11)
 
 a. Obtain the estimated regression function and MSE "by hand" (i.e. without using the `lm` function).
 
-## Solution:
-The estimated regression model is:
+## Solution
+
+The estimated regression model we learned is
 \[
 \hat y = \hat\beta_0 + \hat\beta_1 x.
 \]
-Given that $n = 10$ and: 
-\[
-\sum x_i = 10,\quad \sum y_i = 142.
-\]
+
+```{r}
+# load sample size
+n <- length(shipment)
+
+# compute sample means for xbar and ybar
+xbar <- mean(shipment)
+ybar <- mean(ampules)
+
+#print
+xbar
+ybar
+```
 
 From the formula sheet,
 \[
-\bar X = \frac{1}{n}\sum_{i=1}^n X_i,\qquad 
-\bar Y = \frac{1}{n}\sum_{i=1}^n Y_i.
-\]
-
-we get the sample mean of x and y :
-\[
-\bar x = \frac{10}{10} = 1,\qquad 
-\bar y = \frac{142}{10} = 14.2.
-\]
-
-From the formula sheet,
-\[
-\hat\beta_1 = b_1 = 
-\frac{\sum (X_i-\bar X)(Y_i-\bar Y)}{\sum (X_i-\bar X)^2},\qquad
-\hat\beta_0 = b_0 = \bar Y - \hat\beta_1 \bar X.
-\]
-
-Compute the numerator:
-\[
-\sum (x_i-\bar x)(y_i-\bar y)
-= \sum x_i y_i - \bar x \sum y_i - \bar y \sum x_i + n \bar x \bar y
-\]
-\[
-= 182 - (1)(142) - (14.2)(10) + 10(1)(14.2) = 40.
-\]
-
-Compute the denominator:
-\[
-\sum (x_i-\bar x)^2
-= \sum x_i^2 - 2\bar x \sum x_i + n\bar x^2
-\]
-\[
-= 20 - 2(1)(10) + 10(1^2) = 10.
-\]
-
-Therefore,
-\[
-\hat\beta_1 = b_1 = \frac{40}{10} = 4,
+\hat\beta_1 =
+\frac{\sum (X_i-\bar X)(Y_i-\bar Y)}{\sum (X_i-\bar X)^2},
 \qquad
-\hat\beta_0 = b_0 = 14.2 - 4(1) = 10.2.
+\hat\beta_0 = \bar Y - \hat\beta_1 \bar X.
 \]
 
-Estimated regression function:
+```{r}
+# slope and intercept (by hand formulas)
+numerator   <- sum((shipment - xbar) * (ampules - ybar))
+denominator <- sum((shipment - xbar)^2)
+
+b1 <- numerator / denominator
+b0 <- ybar - b1 * xbar
+
+b1
+b0
+```
+
+Thus, the estimated regression function is
 \[
-\hat y = \hat\beta_0 + \hat\beta_1 x = 10.2 + 4x.
+\hat y = 10.2 + 4x.
 \]
 
 From the formula sheet,
@@ -86,27 +72,20 @@ From the formula sheet,
 MSE = \frac{SSE}{n-2}.
 \]
 
-Compute
-\[
-SSE = \sum \big(y_i - (b_0 + b_1 x_i)\big)^2
-\]
-\[
-= \sum y_i^2 + n b_0^2 + b_1^2 \sum x_i^2 + 2 b_0 b_1 \sum x_i
-- 2 b_0 \sum y_i - 2 b_1 \sum x_i y_i.
-\]
+```{r}
+# fitted values
+yhat <- b0 + b1 * shipment
 
-Substitute $b_0 = 10.2$, $b_1 = 4$:
-\[
-SSE = 2194 + 10(10.2^2) + 16(20) + 2(10.2)(4)(10)
-- 2(10.2)(142) - 2(4)(182)
-\]
-\[
-= 17.6.
-\]
+# SSE and MSE
+SSE <- sum((ampules - yhat)^2)
+MSE <- SSE / (n - 2)
 
-Finally,
+SSE
+MSE
+```
+
 \[
-MSE = \frac{17.6}{10-2} = \frac{17.6}{8} = 2.2.
+MSE = 2.2.
 \]
 
 
@@ -134,15 +113,11 @@ c. Fit the simple linear regression model by the `lm` function. Plot the data an
 Fit the simple linear regression model using the \texttt{lm} function and plot the data with the estimated regression line.
 
 ```{r problem 1 part c}
-# observed data
-x <- c(0, 0, 0, 0, 1, 1, 1, 1, 2, 2)
-y <- c(10, 12, 14, 11, 14, 15, 16, 13, 18, 19)
-
-# fit simple linear regression model
-fit <- lm(y ~ x)
+# fit simple linear regression model using the given data
+fit <- lm(ampules ~ shipment)
 
 # plot data
-plot(x, y,
+plot(shipment, ampules,
      xlab = "Number of Transfers (X)",
      ylab = "Number of Broken Ampules (Y)",
      main = "Broken Ampules vs Number of Transfers")
@@ -150,6 +125,11 @@ plot(x, y,
 # add regression line
 abline(fit)
 ```
+
+Based on the plot, the relationship between the number of transfers and the number
+of broken ampules appears approximately linear, with an increasing trend and no
+strong curvature. Therefore, the simple linear regression model appears appropriate
+for this data.
 
 d. Verify that your fitted regression line goes through the point $(\bar X,\bar Y)$.
 
@@ -176,6 +156,7 @@ Since
 \]
 the fitted regression line does passes through the point $(\bar X,\bar Y)$. :)s
 
+-----------------------------------------------------------------------------------
 
 2.(R) Consider the simple linear regression model through the origin: $Y_i = \beta_1X_i+\epsilon_i$, $\epsilon_i\sim N(0,\sigma^2).$ Consider two estimators for $\beta_1$:
 
@@ -190,54 +171,94 @@ a. Run 1000 simulations. In each simulation, generate samples $(X_i,Y_i,\epsilon
 set.seed(123)
 
 # number of simulations and sample size
-M <- 1000
+num_sim <- 1000
 n <- 30
 beta1 <- 2
 
 # storage for estimators
-beta_hat <- numeric(M)
-beta_tilde <- numeric(M)
+beta1_hat_values <- numeric(num_sim)     # sum(X_i Y_i) / sum(X_i^2)
+beta1_tilde_values <- numeric(num_sim)   # sum(Y_i) / sum(X_i)
 
-for (m in 1:M) {
+for (m in 1:num_sim) {
   
   # generate data
-  X <- rnorm(n, mean = 1, sd = 3)      # X_i ~ N(1, 9)
-  epsilon <- rnorm(n, mean = 0, sd = 1) # epsilon_i ~ N(0, 1)
-  Y <- beta1 * X + epsilon              # Y_i = 2 X_i + epsilon_i
+  X <- rnorm(n, mean = 1, sd = 3)        # X_i ~ N(1, 9)
+  epsilon <- rnorm(n, mean = 0, sd = 1)  # epsilon_i ~ N(0, 1)
+  Y <- beta1 * X + epsilon               # Y_i = 2 X_i + epsilon_i
   
   # estimators
-  beta_hat[m] <- sum(X * Y) / sum(X^2)
-  beta_tilde[m] <- sum(Y) / sum(X)
+  beta1_hat_values[m] <- sum(X * Y) / sum(X^2)
+  beta1_tilde_values[m] <- sum(Y) / sum(X)
 }
 
-# Monte Carlo means
-mc_mean_beta_hat <- mean(beta_hat)
-mc_mean_beta_tilde <- mean(beta_tilde)
+# empirical means across simulations
+mean_hat <- mean(beta1_hat_values)
+mean_tilde <- mean(beta1_tilde_values)
 
-# Monte Carlo variances
-mc_var_beta_hat <- var(beta_hat)
-mc_var_beta_tilde <- var(beta_tilde)
+# sample variances across simulations
+var_hat <- var(beta1_hat_values)
+var_tilde <- var(beta1_tilde_values)
 
 # output
-mc_mean_beta_hat
-mc_mean_beta_tilde
-mc_var_beta_hat
-mc_var_beta_tilde
+mean_hat
+mean_tilde
+var_hat
+var_tilde
 
 ```
+
+Based on the 1000 simulated samples, the empirical mean of
+\[
+\hat\beta_1
+= \frac{\sum_{i=1}^n X_i Y_i}{\sum_{i=1}^n X_i^2}
+\]
+is
+\[
+2.002106,
+\]
+and the empirical mean of
+\[
+\tilde\beta_1
+= \frac{\sum_{i=1}^n Y_i}{\sum_{i=1}^n X_i}
+\]
+is
+\[
+2.001178.
+\]
+
+The sample variance of
+\[
+\hat\beta_1
+= \frac{\sum_{i=1}^n X_i Y_i}{\sum_{i=1}^n X_i^2}
+\]
+across the 1000 simulations is
+\[
+0.00374595,
+\]
+while the sample variance of
+\[
+\tilde\beta_1
+= \frac{\sum_{i=1}^n Y_i}{\sum_{i=1}^n X_i}
+\]
+across the 1000 simulations is
+\[
+0.4084336.
+\]
+
+
 b. Plot the histogram of $\hat\beta_1$ and $\tilde\beta$ across all simulations.
 
 ```{r}
-# histogram of beta_hat
-hist(beta_hat,
+# histogram of hat{beta}_1
+hist(beta1_hat_values,
      breaks = 30,
-     main = "Histogram of hat{beta}_1",
+     main = expression(paste("Histogram of ", hat(beta)[1])),
      xlab = expression(hat(beta)[1]))
 
-# histogram of beta_tilde
-hist(beta_tilde,
+# histogram of tilde{beta}_1
+hist(beta1_tilde_values,
      breaks = 30,
-     main = "Histogram of tilde{beta}_1",
+     main = expression(paste("Histogram of ", tilde(beta)[1])),
      xlab = expression(tilde(beta)[1]))
 ```
 
@@ -245,20 +266,148 @@ hist(beta_tilde,
 c. Compute the sample variance for $\hat\beta_1$ and $\tilde\beta_1.$ Which estimator has smaller sample variance?
 
 ```{r problem 2 part c}
-var_beta_hat <- var(beta_hat)
-var_beta_tilde <- var(beta_tilde)
+var_hat <- var(beta1_hat_values)
+var_tilde <- var(beta1_tilde_values)
 
-var_beta_hat
-var_beta_tilde
+var_hat
+var_tilde
+
 ```
-The sample variance of $\hat\beta_1$ is smaller than the sample variance of
-$\tilde\beta_1$. Therefore, $\hat\beta_1$ is the more efficient estimator of
-$\beta_1$.
+Since both $\hat\beta_1$ and $\tilde\beta_1$ are unbiased estimators of $\beta_1$,
+efficiency is determined by their variances. The estimator with smaller variance
+is more efficient because its values are more tightly concentrated around the true
+parameter. Since
+\[
+\mathrm{Var}(\hat\beta_1)=0.00374595 < \mathrm{Var}(\tilde\beta_1)=0.4084336,
+\]
+$\hat\beta_1$ is the more efficient estimator of $\beta_1$.
 
+-----------------------------------------------------------------------------------
 
 3.\ Consider the simple linear regression model through the origin and two estimators $\hat\beta_1$ and $\tilde\beta_1$ defined in problem 2.
 In the problem 2, we investigate the sampling distribution of these two estimators by simulations. For this problem, we will derive the **true** sampling distribution of the these two estimators.
 
 a. Derive the $E(\hat\beta_1)$ and $V(\hat\beta_1)$. Write down the sampling distribution of $\hat\beta_1$. (Hint: $\hat\beta_1$ is a linear combination of $Y_i$'s)
+
+## Solution:
+The simple linear regression model is:
+\[
+Y_i = \beta_1 X_i + \varepsilon_i,\qquad \varepsilon_i \overset{iid}{\sim} N(0,\sigma^2).
+\]
+
+---
+
+The estimator is
+\[
+\hat\beta_1 = \frac{\sum_{i=1}^n X_i Y_i}{\sum_{i=1}^n X_i^2}
+= \sum_{i=1}^n a_i Y_i,
+\qquad
+a_i = \frac{X_i}{\sum_{j=1}^n X_j^2}.
+\]
+
+From the formula sheet for linear combinations,
+\[
+E\!\left(\sum_{i=1}^n a_i Y_i\right)
+= \sum_{i=1}^n a_i E(Y_i).
+\]
+
+Since $E(Y_i)=\beta_1 X_i$,
+\[
+E(\hat\beta_1)
+= \sum_{i=1}^n a_i \beta_1 X_i
+= \beta_1 \frac{\sum_{i=1}^n X_i^2}{\sum_{i=1}^n X_i^2}
+= \beta_1.
+\]
+
+Using the variance formula for linear combinations and $Var(Y_i)=\sigma^2$,
+\[
+V(\hat\beta_1)
+= \sum_{i=1}^n a_i^2 \sigma^2
+= \sigma^2 \sum_{i=1}^n
+\frac{X_i^2}{\left(\sum_{j=1}^n X_j^2\right)^2}
+= \frac{\sigma^2}{\sum_{i=1}^n X_i^2}.
+\]
+
+Since $\hat\beta_1$ is a linear combination of normally distributed $Y_i$’s,
+\[
+\hat\beta_1 \sim
+N\!\left(\beta_1,\ \frac{\sigma^2}{\sum_{i=1}^n X_i^2}\right).
+\]
+
 b. Derive the $E(\tilde\beta_1)$ and $V(\tilde\beta_1)$. Write down the sampling distribution of $\tilde\beta_1$.
+
+
+
+The estimator is
+\[
+\tilde\beta_1
+= \frac{\sum_{i=1}^n Y_i}{\sum_{i=1}^n X_i}
+= \sum_{i=1}^n c_i Y_i,
+\qquad
+c_i = \frac{1}{\sum_{j=1}^n X_j}.
+\]
+
+Using the expectation formula for linear combinations,
+\[
+E(\tilde\beta_1)
+= \sum_{i=1}^n c_i E(Y_i)
+= \frac{1}{\sum_{j=1}^n X_j}
+\sum_{i=1}^n \beta_1 X_i
+= \beta_1.
+\]
+
+Using the variance formula from the formula sheet,
+\[
+V(\tilde\beta_1)
+= \sum_{i=1}^n c_i^2 Var(Y_i)
+= \sum_{i=1}^n
+\left(\frac{1}{\sum_{j=1}^n X_j}\right)^2 \sigma^2
+= \frac{n\sigma^2}{\left(\sum_{i=1}^n X_i\right)^2}.
+\]
+
+Thus,
+\[
+\tilde\beta_1 \sim
+N\!\left(\beta_1,\ \frac{n\sigma^2}{\left(\sum_{i=1}^n X_i\right)^2}\right).
+\]
+
+
 c. Prove that $V(\hat\beta_1)\le V(\tilde\beta_1).$ (Hint: there are different ways to show this. One option is to prove that $\frac{1}{V(\hat\beta_1)}-\frac{1}{V(\tilde\beta_1)} = \sum_{i=1}^n (X_i-\bar X)^2/\sigma^2\ge 0$) 
+
+
+From parts (a) and (b),
+\[
+\frac{1}{V(\hat\beta_1)}
+= \frac{\sum_{i=1}^n X_i^2}{\sigma^2},
+\qquad
+\frac{1}{V(\tilde\beta_1)}
+= \frac{\left(\sum_{i=1}^n X_i\right)^2}{n\sigma^2}.
+\]
+
+Then,
+\[
+\frac{1}{V(\hat\beta_1)} - \frac{1}{V(\tilde\beta_1)}
+= \frac{1}{\sigma^2}
+\left[
+\sum_{i=1}^n X_i^2
+- \frac{\left(\sum_{i=1}^n X_i\right)^2}{n}
+\right].
+\]
+
+Using the identity from the formula sheet,
+\[
+\sum_{i=1}^n (X_i-\bar X)^2
+= \sum_{i=1}^n X_i^2
+- \frac{\left(\sum_{i=1}^n X_i\right)^2}{n},
+\]
+we obtain
+\[
+\frac{1}{V(\hat\beta_1)} - \frac{1}{V(\tilde\beta_1)}
+= \frac{\sum_{i=1}^n (X_i-\bar X)^2}{\sigma^2}
+\ge 0.
+\]
+
+Therefore,
+\[
+V(\hat\beta_1)\le V(\tilde\beta_1).
+\]
