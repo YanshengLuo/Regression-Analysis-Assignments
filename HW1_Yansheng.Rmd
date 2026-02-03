@@ -26,7 +26,7 @@ a. Obtain the estimated regression function and MSE "by hand" (i.e. without usin
 
 The estimated regression model we learned is
 \[
-\hat y = \hat\beta_0 + \hat\beta_1 x.
+Y_i = \beta_1 X_i + \varepsilon_i,\qquad \varepsilon_i \overset{iid}{\sim} N(0,\sigma^2).
 \]
 
 ```{r}
