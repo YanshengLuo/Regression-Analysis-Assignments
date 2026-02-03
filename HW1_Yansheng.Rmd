@@ -185,9 +185,75 @@ We can show that $E[\hat\beta_1] = E[\tilde\beta_1] = \beta_1$. So these two est
 
 
 a. Run 1000 simulations. In each simulation, generate samples $(X_i,Y_i,\epsilon_i)$ with sample size $n=30$ where $X_i\sim N(1,9)$ (note that 9 is the variance), $\epsilon_i\sim N(0,1)$ and $Y_i = 2X_i+\epsilon_i$ for $i = 1,..,n$ , and obtain the $\hat\beta_1,\tilde\beta_1$ based on the sample. Use `set.seed(123)` at the beginning of the code to ensure that results are reproducible.
+
+``` {r problem 2 part a}
+set.seed(123)
+
+# number of simulations and sample size
+M <- 1000
+n <- 30
+beta1 <- 2
+
+# storage for estimators
+beta_hat <- numeric(M)
+beta_tilde <- numeric(M)
+
+for (m in 1:M) {
+  
+  # generate data
+  X <- rnorm(n, mean = 1, sd = 3)      # X_i ~ N(1, 9)
+  epsilon <- rnorm(n, mean = 0, sd = 1) # epsilon_i ~ N(0, 1)
+  Y <- beta1 * X + epsilon              # Y_i = 2 X_i + epsilon_i
+  
+  # estimators
+  beta_hat[m] <- sum(X * Y) / sum(X^2)
+  beta_tilde[m] <- sum(Y) / sum(X)
+}
+
+# Monte Carlo means
+mc_mean_beta_hat <- mean(beta_hat)
+mc_mean_beta_tilde <- mean(beta_tilde)
+
+# Monte Carlo variances
+mc_var_beta_hat <- var(beta_hat)
+mc_var_beta_tilde <- var(beta_tilde)
+
+# output
+mc_mean_beta_hat
+mc_mean_beta_tilde
+mc_var_beta_hat
+mc_var_beta_tilde
+
+```
 b. Plot the histogram of $\hat\beta_1$ and $\tilde\beta$ across all simulations.
+
+```{r}
+# histogram of beta_hat
+hist(beta_hat,
+     breaks = 30,
+     main = "Histogram of hat{beta}_1",
+     xlab = expression(hat(beta)[1]))
+
+# histogram of beta_tilde
+hist(beta_tilde,
+     breaks = 30,
+     main = "Histogram of tilde{beta}_1",
+     xlab = expression(tilde(beta)[1]))
+```
+
+
 c. Compute the sample variance for $\hat\beta_1$ and $\tilde\beta_1.$ Which estimator has smaller sample variance?
 
+```{r problem 2 part c}
+var_beta_hat <- var(beta_hat)
+var_beta_tilde <- var(beta_tilde)
+
+var_beta_hat
+var_beta_tilde
+```
+The sample variance of $\hat\beta_1$ is smaller than the sample variance of
+$\tilde\beta_1$. Therefore, $\hat\beta_1$ is the more efficient estimator of
+$\beta_1$.
 
 
 3.\ Consider the simple linear regression model through the origin and two estimators $\hat\beta_1$ and $\tilde\beta_1$ defined in problem 2.
