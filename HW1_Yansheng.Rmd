@@ -26,7 +26,7 @@ a. Obtain the estimated regression function and MSE "by hand" (i.e. without usin
 
 The estimated regression model we learned is
 \[
-Y_i = \beta_1 X_i + \varepsilon_i,\qquad \varepsilon_i \overset{iid}{\sim} N(0,\sigma^2).
+Y_i = \beta_0 + \beta_1 X_i + \varepsilon_i,\qquad \varepsilon_i \overset{iid}{\sim} N(0,\sigma^2).
 \]
 
 ```{r}
@@ -69,7 +69,7 @@ Thus, the estimated regression function is
 
 From the formula sheet,
 \[
-MSE = \frac{SSE}{n-2}.
+MSE = \frac{SSE}{n-2}\qquad and\qquad  SSE= \sum_{i=1}^n (Y_i - \hat Y_i)^2.
 \]
 
 ```{r}
@@ -154,7 +154,7 @@ Since
 \[
 \hat y(\bar X) = \bar Y,
 \]
-the fitted regression line does passes through the point $(\bar X,\bar Y)$. :)s
+the fitted regression line does passes through the point $(\bar X,\bar Y)$. :)
 
 -----------------------------------------------------------------------------------
 
@@ -284,130 +284,285 @@ $\hat\beta_1$ is the more efficient estimator of $\beta_1$.
 
 -----------------------------------------------------------------------------------
 
+
+
+
 3.\ Consider the simple linear regression model through the origin and two estimators $\hat\beta_1$ and $\tilde\beta_1$ defined in problem 2.
 In the problem 2, we investigate the sampling distribution of these two estimators by simulations. For this problem, we will derive the **true** sampling distribution of the these two estimators.
 
 a. Derive the $E(\hat\beta_1)$ and $V(\hat\beta_1)$. Write down the sampling distribution of $\hat\beta_1$. (Hint: $\hat\beta_1$ is a linear combination of $Y_i$'s)
 
 ## Solution:
-The simple linear regression model is:
+Through origin model, the simple linear regression model is:
 \[
 Y_i = \beta_1 X_i + \varepsilon_i,\qquad \varepsilon_i \overset{iid}{\sim} N(0,\sigma^2).
 \]
 
----
-
 The estimator is
 \[
 \hat\beta_1 = \frac{\sum_{i=1}^n X_i Y_i}{\sum_{i=1}^n X_i^2}
-= \sum_{i=1}^n a_i Y_i,
-\qquad
-a_i = \frac{X_i}{\sum_{j=1}^n X_j^2}.
 \]
 
-From the formula sheet for linear combinations,
+By formula from the formula sheet for linear combinations,
 \[
 E\!\left(\sum_{i=1}^n a_i Y_i\right)
 = \sum_{i=1}^n a_i E(Y_i).
 \]
 
-Since $E(Y_i)=\beta_1 X_i$,
+we subsititute the some fraction of the function to with $a_i$ so that the equation matches: 
+\[
+\hat\beta_1 = \sum_{i=1}^n a_i Y_i,
+\qquad
+a_i = \frac{X_i}{\sum_{j=1}^n X_j^2}.
+\]
+
+
+Since $E(Y_i)=\beta_1 X_i$ because:
+
+
+if we Taking expectations on both sides of the model,
+\[
+E(Y_i) = E(\beta_1 X_i + \varepsilon_i).
+\]
+By linearity of expectation and since \(\beta_1\) and \(X_i\) are constants,
+\[
+E(Y_i) = \beta_1 X_i + E(\varepsilon_i).
+\]
+Because \(E(\varepsilon_i)=0\), we obtain
+\[
+\boxed{E(Y_i)=\beta_1 X_i.}
+\]
+We will then have:
 \[
 E(\hat\beta_1)
+= E\!\left(\sum_{i=1}^n a_i Y_i\right)
 = \sum_{i=1}^n a_i \beta_1 X_i
 = \beta_1 \frac{\sum_{i=1}^n X_i^2}{\sum_{i=1}^n X_i^2}
 = \beta_1.
 \]
 
-Using the variance formula for linear combinations and $Var(Y_i)=\sigma^2$,
+### So:
+
 \[
-V(\hat\beta_1)
-= \sum_{i=1}^n a_i^2 \sigma^2
-= \sigma^2 \sum_{i=1}^n
-\frac{X_i^2}{\left(\sum_{j=1}^n X_j^2\right)^2}
-= \frac{\sigma^2}{\sum_{i=1}^n X_i^2}.
+E(\hat\beta_1) = \beta_1
 \]
 
+Variance of \(\hat\beta_1\): Again, The estimator of \(\beta_1\) is
+\[
+\hat\beta_1
+= \frac{\sum_{i=1}^n X_i Y_i}{\sum_{i=1}^n X_i^2}
+= \sum_{i=1}^n a_i Y_i,
+\qquad
+a_i=\frac{X_i}{\sum_{j=1}^n X_j^2}.
+\]
+Thus, \(\hat\beta_1\) is a linear combination of the \(Y_i\)'s.
+
+By the formula:
+\[
+\operatorname{Var}\!\left(\sum_{i=1}^n a_i Y_i\right)
+=
+\sum_{i=1}^n a_i^2 \operatorname{Var}(Y_i)
++
+2\sum_{i<j} a_i a_j \operatorname{Cov}(Y_i,Y_j).
+\]
+
+Under the model's assumptions, the error terms \(\varepsilon_i\) are independent. Since
+\[
+Y_i = \beta_1 X_i + \varepsilon_i,
+\]
+and constants do not affect covariance, it follows that
+\[
+\operatorname{Cov}(Y_i,Y_j)=\operatorname{Cov}(\varepsilon_i,\varepsilon_j)=0
+\quad \text{for } i\neq j.
+\]
+Therefore, all covariance terms vanish.
+
+Moreover,
+\[
+\operatorname{Var}(Y_i)=\operatorname{Var}(\varepsilon_i)=\sigma^2.
+\]
+Hence,
+\[
+\operatorname{Var}(\hat\beta_1)
+=
+\sigma^2 \sum_{i=1}^n a_i^2
+=
+\sigma^2
+\frac{\sum_{i=1}^n X_i^2}{\left(\sum_{j=1}^n X_j^2\right)^2}
+=
+\boxed{\frac{\sigma^2}{\sum_{i=1}^n X_i^2}.}
+\]
+
+In summary:
 Since $\hat\beta_1$ is a linear combination of normally distributed $Y_i$’s,
 \[
 \hat\beta_1 \sim
 N\!\left(\beta_1,\ \frac{\sigma^2}{\sum_{i=1}^n X_i^2}\right).
 \]
 
+---
+
 b. Derive the $E(\tilde\beta_1)$ and $V(\tilde\beta_1)$. Write down the sampling distribution of $\tilde\beta_1$.
 
-
+We use the same regression through the origin model:
+\[
+Y_i = \beta_1 X_i + \varepsilon_i,\qquad \varepsilon_i \overset{iid}{\sim} N(0,\sigma^2),
+\]
+and we treat the regressors $X_i$ as fixed.
 
 The estimator is
 \[
-\tilde\beta_1
-= \frac{\sum_{i=1}^n Y_i}{\sum_{i=1}^n X_i}
-= \sum_{i=1}^n c_i Y_i,
-\qquad
-c_i = \frac{1}{\sum_{j=1}^n X_j}.
+\tilde\beta_1 = \frac{\sum_{i=1}^n Y_i}{\sum_{i=1}^n X_i}.
 \]
 
-Using the expectation formula for linear combinations,
+Rewrite $\tilde\beta_1$ as a linear combination of the $Y_i$'s.
+We rewrite $\tilde\beta_1$ in the form $\sum_{i=1}^n b_i Y_i$:
+\[
+\tilde\beta_1
+= \frac{\sum_{i=1}^n Y_i}{\sum_{i=1}^n X_i}
+= \sum_{i=1}^n b_i Y_i,
+\qquad
+b_i = \frac{1}{\sum_{j=1}^n X_j}.
+\]
+
+Expectation of $\tilde\beta_1$.
+By the formula sheet for linear combinations,
+\[
+E\!\left(\sum_{i=1}^n b_i Y_i\right)
+= \sum_{i=1}^n b_i E(Y_i).
+\]
+From part (a), we already proved that
+\[
+E(Y_i)=\beta_1 X_i.
+\]
+Therefore,
 \[
 E(\tilde\beta_1)
-= \sum_{i=1}^n c_i E(Y_i)
-= \frac{1}{\sum_{j=1}^n X_j}
-\sum_{i=1}^n \beta_1 X_i
+= E\!\left(\sum_{i=1}^n b_i Y_i\right)
+= \sum_{i=1}^n b_i \, \beta_1 X_i
+= \sum_{i=1}^n \frac{1}{\sum_{j=1}^n X_j}\,\beta_1 X_i
+= \frac{\beta_1 \sum_{i=1}^n X_i}{\sum_{j=1}^n X_j}
 = \beta_1.
 \]
 
-Using the variance formula from the formula sheet,
 \[
-V(\tilde\beta_1)
-= \sum_{i=1}^n c_i^2 Var(Y_i)
-= \sum_{i=1}^n
-\left(\frac{1}{\sum_{j=1}^n X_j}\right)^2 \sigma^2
-= \frac{n\sigma^2}{\left(\sum_{i=1}^n X_i\right)^2}.
+\boxed{E(\tilde\beta_1)=\beta_1.}
 \]
 
+Variance of $\tilde\beta_1$.: By the variance formula for a linear combination,
+\[
+\operatorname{Var}\!\left(\sum_{i=1}^n b_i Y_i\right)
+=
+\sum_{i=1}^n b_i^2 \operatorname{Var}(Y_i)
++
+2\sum_{i<j} b_i b_j \operatorname{Cov}(Y_i,Y_j).
+\]
+
+As shown in part (a), under the model assumptions the errors are independent, hence
+\[
+\operatorname{Cov}(Y_i,Y_j)=0
+\quad \text{for } i\neq j,
+\]
+so all covariance terms vanish.
+
+Also from part (a), we have
+\[
+\operatorname{Var}(Y_i)=\sigma^2.
+\]
 Thus,
 \[
-\tilde\beta_1 \sim
-N\!\left(\beta_1,\ \frac{n\sigma^2}{\left(\sum_{i=1}^n X_i\right)^2}\right).
+\operatorname{Var}(\tilde\beta_1)
+=
+\sum_{i=1}^n b_i^2 \sigma^2
+=
+\sigma^2 \sum_{i=1}^n \left(\frac{1}{\sum_{j=1}^n X_j}\right)^2
+=
+\sigma^2 \cdot n \cdot \frac{1}{\left(\sum_{j=1}^n X_j\right)^2}.
 \]
 
+\[
+\boxed{\operatorname{Var}(\tilde\beta_1)=\frac{n\sigma^2}{\left(\sum_{i=1}^n X_i\right)^2}.}
+\]
+
+Sampling distribution of $\tilde\beta_1$.
+Because each $Y_i$ is normal and $\tilde\beta_1=\sum_{i=1}^n b_i Y_i$ is a linear combination of jointly normal variables, $\tilde\beta_1$ is normal. Using the mean and variance derived above,
+\[
+\boxed{\tilde\beta_1 \sim N\!\left(\beta_1,\; \frac{n\sigma^2}{\left(\sum_{i=1}^n X_i\right)^2}\right).}
+\]
+
+---
 
 c. Prove that $V(\hat\beta_1)\le V(\tilde\beta_1).$ (Hint: there are different ways to show this. One option is to prove that $\frac{1}{V(\hat\beta_1)}-\frac{1}{V(\tilde\beta_1)} = \sum_{i=1}^n (X_i-\bar X)^2/\sigma^2\ge 0$) 
 
 
 From parts (a) and (b),
 \[
-\frac{1}{V(\hat\beta_1)}
-= \frac{\sum_{i=1}^n X_i^2}{\sigma^2},
+\frac{1}{V(\hat\beta_1)}=\frac{\sum_{i=1}^n X_i^2}{\sigma^2},
 \qquad
-\frac{1}{V(\tilde\beta_1)}
-= \frac{\left(\sum_{i=1}^n X_i\right)^2}{n\sigma^2}.
+\frac{1}{V(\tilde\beta_1)}=\frac{\left(\sum_{i=1}^n X_i\right)^2}{n\sigma^2}.
 \]
-
-Then,
+Subtract:
 \[
-\frac{1}{V(\hat\beta_1)} - \frac{1}{V(\tilde\beta_1)}
-= \frac{1}{\sigma^2}
-\left[
-\sum_{i=1}^n X_i^2
-- \frac{\left(\sum_{i=1}^n X_i\right)^2}{n}
+\frac{1}{V(\hat\beta_1)}-\frac{1}{V(\tilde\beta_1)}
+=
+\frac{1}{\sigma^2}\left[
+\sum_{i=1}^n X_i^2-\frac{\left(\sum_{i=1}^n X_i\right)^2}{n}
 \right].
 \]
 
-Using the identity from the formula sheet,
+I FINALLY found that By definition of sample mean: $\bar X=\frac{1}{n}\sum_{i=1}^n X_i$. 
+\[
+\frac{\left(\sum_{i=1}^n X_i\right)^2}{n}
+=
+n\bar X^2.
+\]
+So the inside the bracket it becomes
+\[
+\sum_{i=1}^n X_i^2-n\bar X^2.
+\]
+Now expand the sum of squared deviations:
 \[
 \sum_{i=1}^n (X_i-\bar X)^2
-= \sum_{i=1}^n X_i^2
-- \frac{\left(\sum_{i=1}^n X_i\right)^2}{n},
+=
+\sum_{i=1}^n \left(X_i^2-2\bar X X_i+\bar X^2\right)
+=
+\sum_{i=1}^n X_i^2-2\bar X\sum_{i=1}^n X_i+n\bar X^2.
 \]
-we obtain
+Since $\sum_{i=1}^n X_i=n\bar X$ by mutiply the sample mean equation by n, we have
 \[
-\frac{1}{V(\hat\beta_1)} - \frac{1}{V(\tilde\beta_1)}
-= \frac{\sum_{i=1}^n (X_i-\bar X)^2}{\sigma^2}
-\ge 0.
+-2\bar X\sum_{i=1}^n X_i=-2\bar X(n\bar X)=-2n\bar X^2,
 \]
-
+hence
+\[
+\sum_{i=1}^n (X_i-\bar X)^2
+=
+\sum_{i=1}^n X_i^2-2n\bar X^2+n\bar X^2
+=
+\sum_{i=1}^n X_i^2-n\bar X^2.
+\]
 Therefore,
 \[
-V(\hat\beta_1)\le V(\tilde\beta_1).
+\sum_{i=1}^n X_i^2-\frac{\left(\sum_{i=1}^n X_i\right)^2}{n}
+=
+\sum_{i=1}^n X_i^2-n\bar X^2
+=
+\sum_{i=1}^n (X_i-\bar X)^2.
+\]
+Substituting back,
+\[
+\boxed{
+\frac{1}{V(\hat\beta_1)}-\frac{1}{V(\tilde\beta_1)}
+=
+\frac{1}{\sigma^2}\sum_{i=1}^n (X_i-\bar X)^2
+\ge 0.
+}
+\]
+
+Since $V(\hat\beta_1)>0$ and $V(\tilde\beta_1)>0$, the inequality
+\[
+\frac{1}{V(\hat\beta_1)}\ge \frac{1}{V(\tilde\beta_1)}
+\]
+Proves that:
+\[
+\boxed{V(\hat\beta_1)\le V(\tilde\beta_1).}
 \]
