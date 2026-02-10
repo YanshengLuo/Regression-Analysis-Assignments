@@ -1,0 +1,282 @@
+---
+title: "STA 4210 HW 2"
+author: "Yansheng Luo"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, tidy=TRUE, tidy.opts=list(width.cutoff=60))
+```
+
+
+1.\  An electrical contractor fits a simple linear regression model, relating cost to wire a house (Y, in dollars) to the size of the house (X, in $\mathrm{ft}^2$). She fits a model, based on a sample of $n=16$ houses and obtains the following results
+
+$\hat Y_i = 50+0.22X_i$, $s^2 = 1600$, $\sum_{i=1}^n(X_i-\bar X)^2=4000000$, $\bar X = 2000$
+
+Given:
+\[
+\hat{Y}_i = 50 + 0.22X_i,\qquad
+s^2 = 1600,\qquad
+\sum_{i=1}^n (X_i-\bar X)^2 = 4{,}000{,}000,\qquad
+\bar X = 2000,\qquad
+n=16
+\]
+Let \( s=\sqrt{s^2}=40 \) and \( df=n-2=14 \).
+
+## a. Compute the standard error of $b_1$
+### Solution:
+From the formula sheet,
+\[
+S(b_1)=\frac{s}{\sqrt{\sum (X_i-\bar X)^2}}.
+\]
+```{r Question 1 part a}
+b1  <- 0.22
+s2  <- 1600
+s   <- sqrt(s2)
+Sxx <- 4000000
+
+Se_b1 <- s / sqrt(Sxx)
+Se_b1
+```
+\[
+S(b_1)=\frac{40}{\sqrt{4{,}000{,}000}}=0.02
+\]
+
+
+## b. Compute a $95\%$ Confidence Interval for $\beta_1$
+### Solution:
+From the formula sheet,
+\[
+b_1 \pm t_{1-\alpha/2,\;n-2}\,S(b_1).
+\]
+```{r Question 1 part b}
+df <- 14
+tcrit <- 2.145
+
+CI_b1 <- c(b1 - tcrit*Se_b1, b1 + tcrit*Se_b1)
+CI_b1
+
+```
+With \( t_{0.975,14}=2.145 \),
+\[
+0.22 \pm 2.145(0.02) = (0.1771,\;0.2629).
+\]
+
+## c. Compute a $95\%$ Confidence Interval for $\sigma^2$
+### Solution:
+
+Using the chi-square interval,
+\[
+\left(
+\frac{(n-2)s^2}{\chi^2_{1-\alpha/2,\;n-2}},
+\frac{(n-2)s^2}{\chi^2_{\alpha/2,\;n-2}}
+\right).
+\]
+```{r Question 1 part c}
+alpha <- 0.05
+df <- 14
+
+chi_upper <- qchisq(1 - alpha/2, df)
+chi_lower <- qchisq(alpha/2, df)
+
+CI_sig2 <- c(df*s2/chi_upper, df*s2/chi_lower)
+CI_sig2
+```
+With \( \chi^2_{0.975,14}=26.1189 \) and \( \chi^2_{0.025,14}=5.6287 \),
+\[
+\left(
+\frac{14(1600)}{26.1189},
+\frac{14(1600)}{5.6287}
+\right)
+=
+(857.6,\;3979.6).
+\]
+
+## d. Compute a $95\%$ Confidence Interval for the mean of all homes with $X_{0} = 2000$
+### Solution:
+\[
+\hat Y_0 = 50 + 0.22(2000)=490.
+\]
+
+From the formula sheet,
+\[
+S(\hat Y_0)
+= s\sqrt{\frac{1}{n}+\frac{(X_0-\bar X)^2}{\sum (X_i-\bar X)^2}.
+}
+\]
+```{r Question 1 part d}
+b0 <- 50
+X0 <- 2000
+xbar <- 2000
+n <- 16
+
+Yhat0 <- b0 + b1*X0
+Se_Yhat0 <- s * sqrt(1/n + (X0 - xbar)^2 / Sxx)
+
+CI_mean <- c(Yhat0 - tcrit*Se_Yhat0, Yhat0 + tcrit*Se_Yhat0)
+Yhat0
+Se_Yhat0
+CI_mean
+```
+Since \( X_0=\bar X \),
+\[
+S(\hat Y_0)=40\sqrt{\frac{1}{16}}=10.
+\]
+
+\[
+490 \pm 2.145(10) = (468.55,\;511.45).
+\]
+
+## e. Compute a $95\%$ Prediction Interval for her brother-in-laws house with $X_{0} = 2000$
+### Solution:
+From the formula sheet,
+\[
+S_{\text{pred}}
+= s\sqrt{
+1+\frac{1}{n}+\frac{(X_0-\bar X)^2}{\sum (X_i-\bar X)^2
+}.
+}
+\]
+```{r Question 1 part e}
+Se_pred <- s * sqrt(1 + 1/n + (X0 - xbar)^2 / Sxx)
+
+PI <- c(Yhat0 - tcrit*Se_pred, Yhat0 + tcrit*Se_pred)
+Se_pred
+PI
+
+```
+Since \( X_0=\bar X \),
+\[
+S_{\text{pred}}=40\sqrt{1+\frac{1}{16}}=41.23.
+\]
+
+\[
+490 \pm 2.145(41.23) = (401.55,\;578.45).
+\]
+
+2.(R) A substance used in biological and medical research is shipped by airfreight
+to users in cartons of 1,000 ampules. The data below, involving 10 shipments, were
+collected on the number of times the carton was transferred from one aircraft to another over
+the shipment route ($X$) and the number of ampules found to be broken upon arrival ($Y$). Assume
+that the simple linear regression model is appropriate.
+
+
+```{r}
+shipment <- c(1,0,2,0,3,1,0,1,2,0)
+ampules <- c(16,9,17,12,22,13,8,15,19,11)
+```
+
+Do not use the `lm` and `anova` function for this problem.
+
+## a. Compute the ANOVA table. Please print out the SS and MS for each source and the corresponding degree of freedom.
+
+### Solution:
+```{r}
+options(digits = 6)
+x <- shipment
+y <- ampules
+n <- length(x)
+
+xbar <- mean(x)
+ybar <- mean(y)
+
+Sxx <- sum((x - xbar)^2)
+Sxy <- sum((x - xbar)*(y - ybar))
+
+b1 <- Sxy / Sxx
+b0 <- ybar - b1*xbar
+
+yhat <- b0 + b1*x
+SST <- sum((y - ybar)^2)
+SSR <- sum((yhat - ybar)^2)
+SSE <- sum((y - yhat)^2)
+
+MSR <- SSR / 1
+MSE <- SSE / (n - 2)
+
+n
+n-1
+n-2
+cat(sprintf("SST = %.1f\n", SST))
+cat(sprintf("SSR = %.1f\n", SSR))
+cat(sprintf("SSE = %.1f\n", SSE))
+cat(sprintf("MSR = %.1f\n", MSR))
+cat(sprintf("MSE = %.2f\n", MSE))
+```
+The resulting ANOVA table is:
+
+\[
+\begin{array}{lccc}
+\hline
+\text{Source} & \text{SS} & \text{df} & \text{MS} \\
+\hline
+\text{Regression} & 160.0 & 1 & 160.0 \\
+\text{Error} & 17.6 & 8 & 2.20 \\
+\text{Total} & 177.6 & 9 & \\
+\hline
+\end{array}
+\]
+
+## b. Conduct the F-test of $H_0: \beta_1 = 0$ versus $H_a: \beta_1\neq 0$ with $\alpha = 0.05$. Report the p-value and state your conclusion.
+
+### Solution:
+```{r}
+Fstat <- MSR / MSE
+pval  <- 1 - pf(Fstat, 1, 8)
+```
+
+We test:
+\[
+H_0:\ \beta_1 = 0
+\quad \text{vs.} \quad
+H_1:\ \beta_1 \neq 0.
+\]
+
+The test statistic is
+\[
+F = \frac{\text{MSR}}{\text{MSE}}
+= \frac{154.8}{2.15}
+= 72.0.
+\]
+
+Under \(H_0\),
+\[
+F \sim F_{1,8}.
+\]
+
+The corresponding p-value is
+\[
+p < 0.0001.
+\]
+
+\textbf{Conclusion:}  
+Since the p-value is much smaller than \( \alpha = 0.05 \), we reject \(H_0\).
+There is strong statistical evidence that the number of damaged ampules is linearly associated with the number of ampules per shipment.
+
+3.(R) A criminologist collected data on the percentage of individuals having at least a high-school
+diploma (X) and the crime rate (Y, number of crimes per 100,000 residents) in 84 medium-sized
+US counties. You can use any R functions for this problem.
+
+```{r}
+crime <- read.table("http://www.stat.ufl.edu/~rrandles/sta4210/Rclassnotes/data/textdatasets/KutnerData/Chapter%20%201%20Data%20Sets/CH01PR28.txt",
+                 col.names=c("y","x"))
+```
+
+
+a. Fit the linear regression model using `lm()`.
+
+
+
+
+b. Generate plots to check the four linear regression assumptions, and explain whether the assumptions are violated or not.
+
+
+
+c. Perform the following statistical tests with $\alpha = 0.05$ to further evaluate the model assumptions:
+* Shapiro-Wilk test
+* Runs test
+* Durbin-Watson test
+* Levene's test 
+* Breusch-Pagan/Cook-Weisberg test
+* Lack-of-fit test  
+Interpret the results of each test. If you think any of these tests are not applicable in this case, explain your reasoning.
