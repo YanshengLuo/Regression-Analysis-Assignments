@@ -253,6 +253,8 @@ p < 0.0001.
 Since the p-value is much smaller than \( \alpha = 0.05 \), we reject \(H_0\).
 There is strong statistical evidence that the number of damaged ampules is linearly associated with the number of ampules per shipment.
 
+---
+
 3.(R) A criminologist collected data on the percentage of individuals having at least a high-school
 diploma (X) and the crime rate (Y, number of crimes per 100,000 residents) in 84 medium-sized
 US counties. You can use any R functions for this problem.
@@ -265,11 +267,47 @@ crime <- read.table("http://www.stat.ufl.edu/~rrandles/sta4210/Rclassnotes/data/
 
 a. Fit the linear regression model using `lm()`.
 
+Model:
+
+\[
+Y_i = \beta_0 + \beta_1 X_i + \varepsilon_i
+\]
+
+```{r}
+fit <- lm(y ~ x, data = crime)
+
+summary_fit <- summary(fit)
+summary_fit
+```
+
+Fitted equation:
+
+\[
+\hat{Y}_i = \hat{\beta}_0 + \hat{\beta}_1 X_i
+\]
 
 
 
 b. Generate plots to check the four linear regression assumptions, and explain whether the assumptions are violated or not.
 
+Assumptions:
+1. Linearity  
+2. Normality  
+3. Independence  
+4. Constant variance  
+
+```{r}
+par(mfrow=c(2,2))
+plot(fit)
+par(mfrow=c(1,1))
+```
+
+Interpretation:
+
+- Residuals vs Fitted: check linearity and constant variance.  
+- Normal Q-Q: check normality.  
+- Scale-Location: check homoscedasticity.  
+- Residuals vs Leverage: check influential points.  
 
 
 c. Perform the following statistical tests with $\alpha = 0.05$ to further evaluate the model assumptions:
@@ -280,3 +318,131 @@ c. Perform the following statistical tests with $\alpha = 0.05$ to further evalu
 * Breusch-Pagan/Cook-Weisberg test
 * Lack-of-fit test  
 Interpret the results of each test. If you think any of these tests are not applicable in this case, explain your reasoning.
+
+--
+
+#### (1) Shapiro–Wilk test (Normality)
+
+\[
+H_0: \text{Errors are normally distributed}
+\]
+
+```{r}
+if(!require(randtests)) install.packages("randtests")
+if(!require(lmtest)) install.packages("lmtest")
+if(!require(car)) install.packages("car")
+
+library(randtests)
+library(lmtest)
+library(car)
+
+resid_vec <- residuals(fit)
+shapiro_res <- shapiro.test(resid_vec)
+shapiro_res
+```
+
+Decision rule: reject \(H_0\) if p-value < 0.05.
+
+---
+
+#### (2) Runs test (Independence)
+
+\[
+H_0: \text{Errors are independent}
+\]
+
+```{r}
+library(randtests)
+
+run_res <- runs.test(resid_vec)
+run_res
+```
+
+Reject \(H_0\) if p-value < 0.05.
+
+---
+
+#### (3) Durbin–Watson test (Autocorrelation)
+
+\[
+H_0: \rho = 0
+\]
+
+\[
+TS = \frac{\sum_{i=2}^{n}(e_i - e_{i-1})^2}{\sum_{i=1}^{n} e_i^2}
+\]
+
+```{r}
+library(lmtest)
+
+dw_res <- dwtest(fit)
+dw_res
+```
+
+Reject \(H_0\) if p-value < 0.05.
+
+---
+
+#### (4) Levene’s test (Homogeneity of variance)
+
+Artificial grouping since X is quantitative.
+
+\[
+H_0: \sigma_1^2 = \sigma_2^2 = \cdots
+\]
+
+```{r}
+library(car)
+
+crime$group <- cut(crime$x, breaks = 4)
+
+levene_res <- leveneTest(resid_vec ~ group, data = crime)
+levene_res
+```
+
+Reject \(H_0\) if p-value < 0.05.
+
+---
+
+#### (5) Breusch–Pagan test
+
+\[
+H_0: \gamma_1 = 0
+\]
+
+```{r}
+bp_res <- bptest(fit)
+bp_res
+```
+
+Reject \(H_0\) if p-value < 0.05.
+
+---
+
+#### (6) Lack-of-fit test
+
+Requires repeated X levels.
+
+```{r}
+length(unique(crime$x))
+```
+
+If the number of distinct \(X\) levels is approximately \(n\), then:
+
+\[
+df_{pure\ error} = n - t = 0
+\]
+
+Therefore, lack-of-fit test is not applicable.
+
+---
+
+### Overall Conclusion
+
+- Linearity: assessed via residual plot.  
+- Normality: Q-Q plot and Shapiro–Wilk test.  
+- Independence: Runs test and Durbin–Watson test.  
+- Constant variance: Scale-Location plot, Levene’s test, Breusch–Pagan test.  
+- Lack-of-fit test not valid if no replicated X levels.  
+
+Assumptions are satisfied if p-values > 0.05 and no systematic patterns appear in diagnostic plots.
