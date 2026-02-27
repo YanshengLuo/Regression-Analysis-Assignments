@@ -1,0 +1,279 @@
+---
+title: "STA 4210 HW 3"
+author: "Yansheng Luo"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, tidy=TRUE, tidy.opts=list(width.cutoff=60), warning = FALSE, message = FALSE)
+```
+
+1.(R) In this problem, you will be working with the `cars` dataset, which contains two variables:
+    - `speed`: The speed of the car (in mph)
+    - `dist`: The stopping distance (in feet)
+
+```{r}
+library(car)
+car.reg <- lm(dist~speed,data = cars)
+
+e <- rstudent(car.reg)
+shapiro.test(e) # Shapiro-Wilk
+ncvTest(car.reg) # Breusch-Pagan
+```
+
+
+a. (5pt) Based on the results of the significance test, there might be violation to the Homogeneity assumption and Normal assumption. Use the `boxcox` function from the `MASS` package to find the optimal value of the Box-Cox transformation parameter ($\lambda$).
+
+## Solutions:
+The Box--Cox transformation for a positive response variable $Y$ is defined as
+$$
+Y^{(\lambda)} =
+\begin{cases}
+\dfrac{Y^\lambda - 1}{\lambda}, & \lambda \neq 0 \\
+\log(Y), & \lambda = 0
+\end{cases}
+$$
+
+The optimal value of $\lambda$ is chosen to maximize the log-likelihood function.
+```{r question 1 part a}
+library(MASS)
+
+# Box-Cox on the ORIGINAL model
+bc <- boxcox(car.reg, lambda = seq(-2, 2, by = 0.01), plotit = TRUE)
+
+# Optimal lambda = argmax of log-likelihood
+lambda_opt <- bc$x[which.max(bc$y)]
+lambda_opt
+```
+
+The Box--Cox analysis suggests an optimal transformation parameter of
+$\hat{\lambda} = 0.43$. Since this value is close to $0.5$, the transformation
+is approximately a square-root transformation, which may help stabilize the
+variance and improve the normality of the residuals.
+
+---
+
+b. (5pt) Apply the transformation to the response variable using the optimal $\lambda$ and refit the model using the transformed data.
+
+### Solution:
+The transformed response variable is computed using the Box--Cox formula
+
+$$
+Y^{(\lambda)} =
+\frac{Y^\lambda - 1}{\lambda}, \quad \lambda \neq 0.
+$$
+
+Substituting $\hat{\lambda} = 0.43$,
+
+$$
+Y^{(0.43)} =
+\frac{Y^{0.43} - 1}{0.43}.
+$$
+```{r question 1 part b}
+lambda_opt <- 0.43
+
+# Transform response
+dist_bc <- (cars$dist^lambda_opt - 1) / lambda_opt
+
+# Refit regression model
+car.reg.bc <- lm(dist_bc ~ speed, data = cars)
+
+summary(car.reg.bc)
+```
+From the output:
+The intercept = 1.05004
+slope = 0.50538
+Thus:
+$$
+\widehat{Y^{(0.43)}} =
+1.05004 + 0.50538(\text{speed}).
+$$
+The response variable was transformed using the optimal Box--Cox parameter
+$\hat{\lambda}=0.43$, and the regression model was refit using the transformed
+response. The fitted model shows a significant positive relationship between
+speed and the transformed stopping distance ($p < 0.001$).
+
+---
+
+c. (10pt) Check ALL model assumptions by significance tests with $\alpha = 0.05$ after applying the transformation. Are there any potential violations? 
+
+### Solution:
+After applying the Box–Cox transformation with 
+$\hat{\lambda} = 0.43$, the regression assumptions were evaluated using significance tests at $\alpha=0.05$.
+
+The following tests were performed based on the previous hw:
+
+Shapiro–Wilk test (normality)
+
+Runs test (randomness)
+
+Durbin–Watson test (independence)
+
+Levene’s test (homogeneity of variance)
+
+Breusch–Pagan / Cook–Weisberg test (heteroscedasticity)
+
+Lack-of-fit test (model adequacy / linearity)
+
+```{r question 1 part b}
+if(!require(randtests)) install.packages("randtests")
+if(!require(lmtest)) install.packages("lmtest")
+if(!require(car)) install.packages("car")
+
+library(randtests)
+library(lmtest)
+library(car)
+
+
+# Studentized residuals
+e_bc <- rstudent(car.reg.bc)
+
+### 1. Shapiro-Wilk test (Normality)
+shapiro.test(e_bc)
+
+### 2. Runs test (Randomness)
+runs.test(e_bc)
+
+### 3. Durbin-Watson test (Independence)
+durbinWatsonTest(car.reg.bc)
+
+### 4. Levene's Test (Homogeneity)
+leveneTest(e_bc ~ as.factor(cars$speed))
+
+### 5. Breusch-Pagan / Cook-Weisberg (Homoscedasticity)
+bptest(car.reg.bc)
+
+### 6. Lack-of-Fit Test
+# Compare linear vs saturated model
+car.reg.full <- lm(dist_bc ~ factor(speed), data = cars)
+anova(car.reg.bc, car.reg.full)
+```
+After applying the Box--Cox transformation with $\hat{\lambda}=0.43$, all model
+assumptions were evaluated using significance tests at $\alpha = 0.05$.
+
+\textbf{Shapiro--Wilk test (Normality)}
+
+$$
+H_0: \text{Residuals are normally distributed}
+$$
+
+The p-value is $0.3403 > 0.05$, so we fail to reject $H_0$. There is no evidence
+against the normality assumption.
+
+\textbf{Runs test (Randomness)}
+
+$$
+H_0: \text{Residuals occur in random order}
+$$
+
+The p-value is $0.5676 > 0.05$, so we fail to reject $H_0$. The residuals appear
+to occur randomly.
+
+\textbf{Durbin--Watson test (Independence)}
+
+$$
+H_0: \text{Errors are independent}
+$$
+
+The p-value is $0.764 > 0.05$, so we fail to reject $H_0$. There is no evidence
+of autocorrelation among the residuals.
+
+\textbf{Levene's test (Homogeneity of variance)}
+
+$$
+H_0: \sigma^2_1 = \sigma^2_2 = \cdots = \sigma^2_k
+$$
+
+The p-value is $0.2849 > 0.05$, so we fail to reject $H_0$. The variances appear
+to be homogeneous.
+
+\textbf{Breusch--Pagan test (Constant variance)}
+
+$$
+H_0: \sigma^2 \text{ is constant}
+$$
+
+The p-value is $0.7382 > 0.05$, so we fail to reject $H_0$. There is no evidence
+of heteroscedasticity.
+
+\textbf{Lack-of-fit test (Model adequacy)}
+
+$$
+H_0: \text{The linear model is adequate (no lack of fit)}
+$$
+
+The p-value is $0.5177 > 0.05$, so we fail to reject $H_0$. The linear model
+appears to provide an adequate fit to the data.
+
+\textbf{Overall Conclusion}
+
+Since all p-values are greater than $\alpha = 0.05$, there is no evidence of
+violations of the regression assumptions after applying the Box--Cox
+transformation. Therefore, the transformed model satisfies the assumptions of
+normality, independence, homogeneity of variance, randomness, and linear model
+adequacy.
+---
+
+d. (5pt) For the refitted model with the transformed response, compute simultaneous confidence intervals for the mean transformed stopping distance at speed = 20 mph and 24 mph using the Bonferroni method with at least 95% coverage. You can use the `predict` function.
+```{r question 1 part b}
+```
+
+
+
+2.(R) In this problem, you will work with matrices in R. You can use the following R functions to complete the tasks:
+    - `matrix()` to generate a matrix
+    - `%*%` for matrix multiplication
+    - `det()` to calculate the determinant
+    - `qr()` to find the rank of a matrix
+    - `t()` for the transpose of a matrix
+
+
+
+
+
+a. (5pt) Let $A$ and $B$ be the following matrices:
+$$
+A = \begin{pmatrix}
+2 & 1 & 0 \\
+-1 & 3 & 4 \\
+5 & 6 & -2
+\end{pmatrix}
+$$
+
+$$
+B = \begin{pmatrix}
+1 & 2 \\
+-1 & 0 \\
+3 & 4
+\end{pmatrix}
+$$
+Multiply matrix $A$ by matrix $B$ (i.e., compute $AB$).
+
+
+
+
+b. (5pt) Calculate the transpose of matrix $A$ (denoted $A^T$). Is matrix $A^TA$ symmetric? Verify this by checking whether it is equal to its transpose.
+
+
+
+c. (5pt) Consider the matrix $C$:
+$$
+C = \begin{pmatrix}
+3 & 1 \\
+5 & 7
+\end{pmatrix}
+$$Calculate the determinant of matrix $C$. What does the determinant tell you about the matrix?
+
+
+
+d. (5pt) Using matrix $A$ from part (a). Calculate the rank of matrix $A$. Is matrix $A$ full-rank (i.e., does it have the maximum rank)? *R Hint*: You can use `qr()` function obtain the rank directly, or use `eigen()` function to find the eigenvalues and rank is the number of non-zero eigenvalues.
+
+
+
+e. (5pt) If a square matrix is full-rank, its inverse can be computed. Consider the following matrix $D$:
+$$
+D = \begin{pmatrix}
+4 & 7 \\
+2 & 6
+\end{pmatrix}
+$$Check if matrix $D$ is full-rank. If $D$ is full-rank, calculate its inverse. *R Hint*: Use `solve()` to calculate the inverse of a matrix. Make sure to check the rank first.
