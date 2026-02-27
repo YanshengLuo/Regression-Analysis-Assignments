@@ -33,9 +33,9 @@ S(b_1)=\frac{s}{\sqrt{\sum (X_i-\bar X)^2}}.
 b1  <- 0.22
 s2  <- 1600
 s   <- sqrt(s2)
-Sxx <- 4000000
+Sxx <- 4000000 #sum of squares
 
-Se_b1 <- s / sqrt(Sxx)
+Se_b1 <- s / sqrt(Sxx) #by formula
 Se_b1
 ```
 \[
@@ -50,13 +50,19 @@ From the formula sheet,
 b_1 \pm t_{1-\alpha/2,\;n-2}\,S(b_1).
 \]
 ```{r Question 1 part b}
-df <- 14
-tcrit <- 2.145
+df <- 16 -2 #degrees of freedom
+df
+tcrit <- 2.145 #t at 95% confidence, because CI is 2 sided, we look for t_0.975
 
 CI_b1 <- c(b1 - tcrit*Se_b1, b1 + tcrit*Se_b1)
 CI_b1
 
 ```
+By the CI formula:
+\[
+CI = b_1 \pm t_{1-\alpha/2,\; n-2}\, S_{b_1}
+\]
+
 With \( t_{0.975,14}=2.145 \),
 \[
 0.22 \pm 2.145(0.02) = (0.1771,\;0.2629).
@@ -105,7 +111,7 @@ S(\hat Y_0)
 }
 \]
 ```{r Question 1 part d}
-b0 <- 50
+b0 <- 50 #just assigning the variables again
 X0 <- 2000
 xbar <- 2000
 n <- 16
@@ -113,7 +119,7 @@ n <- 16
 Yhat0 <- b0 + b1*X0
 Se_Yhat0 <- s * sqrt(1/n + (X0 - xbar)^2 / Sxx)
 
-CI_mean <- c(Yhat0 - tcrit*Se_Yhat0, Yhat0 + tcrit*Se_Yhat0)
+CI_mean <- c(Yhat0 - tcrit*Se_Yhat0, Yhat0 + tcrit*Se_Yhat0) # compute CI
 Yhat0
 Se_Yhat0
 CI_mean
@@ -124,11 +130,16 @@ S(\hat Y_0)=40\sqrt{\frac{1}{16}}=10.
 \]
 
 \[
+CI = \hat{Y} \pm t_{1-\alpha/2,\; n-2}\, S_{\hat{Y}}
+\]
+
+\[
 490 \pm 2.145(10) = (468.55,\;511.45).
 \]
 
 ## e. Compute a $95\%$ Prediction Interval for her brother-in-laws house with $X_{0} = 2000$
 ### Solution:
+Since we are predicting a value:
 From the formula sheet,
 \[
 S_{\text{pred}}
@@ -147,11 +158,15 @@ PI
 ```
 Since \( X_0=\bar X \),
 \[
-S_{\text{pred}}=40\sqrt{1+\frac{1}{16}}=41.23.
+ S_{\text{pred}}=40\sqrt{1+\frac{1}{16}}=41.23.
 \]
 
 \[
-490 \pm 2.145(41.23) = (401.55,\;578.45).
+PI = \hat{Y} \pm t_{1-\alpha/2,\; n-2}\, S_{\text{pred}}
+\]
+
+\[
+490 \pm 2.145(41.23) = (401.56,\;578.44).
 \]
 
 2.(R) A substance used in biological and medical research is shipped by airfreight
@@ -172,11 +187,12 @@ Do not use the `lm` and `anova` function for this problem.
 
 ### Solution:
 ```{r}
-options(digits = 6)
+options(digits = 6) # 6 sig fig
 x <- shipment
 y <- ampules
 n <- length(x)
 
+## compute by formula given from the lecture
 xbar <- mean(x)
 ybar <- mean(y)
 
@@ -221,8 +237,11 @@ The resulting ANOVA table is:
 
 ### Solution:
 ```{r}
-Fstat <- MSR / MSE
+Fstat <- MSR / MSE #f-calculated
 pval  <- 1 - pf(Fstat, 1, 8)
+
+Fstat
+pval
 ```
 
 We test:
@@ -235,8 +254,8 @@ H_1:\ \beta_1 \neq 0.
 The test statistic is
 \[
 F = \frac{\text{MSR}}{\text{MSE}}
-= \frac{154.8}{2.15}
-= 72.0.
+= \frac{160.0}{2.20}
+= 72.73.
 \]
 
 Under \(H_0\),
@@ -244,14 +263,14 @@ Under \(H_0\),
 F \sim F_{1,8}.
 \]
 
-The corresponding p-value is
+The corresponding p-value (from R) is extremely small:
 \[
 p < 0.0001.
 \]
 
 \textbf{Conclusion:}  
 Since the p-value is much smaller than \( \alpha = 0.05 \), we reject \(H_0\).
-There is strong statistical evidence that the number of damaged ampules is linearly associated with the number of ampules per shipment.
+There is strong statistical evidence that the number of damaged ampules is linearly associated with the number of aircraft transfers during shipment.
 
 ---
 
@@ -283,10 +302,11 @@ summary_fit
 Fitted equation:
 
 \[
-\hat{Y}_i = \hat{\beta}_0 + \hat{\beta}_1 X_i
+\hat{Y} = 20517.6 - 170.6X
 \]
+The slope estimate is negative, indicating that counties with a higher percentage of individuals holding at least a high-school diploma tend to have lower crime rates. Specifically, for each 1\% increase in the high-school graduation rate, the crime rate is estimated to decrease by approximately 170.6 crimes per 100,000 residents.
 
-
+The slope is statistically significant ($p = 9.6 \times 10^{-5}$), indicating strong evidence of a linear association between education level and crime rate. The model explains approximately 17\% of the variability in crime rates ($R^2 = 0.17$), suggesting that while education is important, other factors also contribute to crime levels.
 
 b. Generate plots to check the four linear regression assumptions, and explain whether the assumptions are violated or not.
 
@@ -302,13 +322,20 @@ plot(fit)
 par(mfrow=c(1,1))
 ```
 
-Interpretation:
+### Interpretation:
 
-- Residuals vs Fitted: check linearity and constant variance.  
-- Normal Q-Q: check normality.  
-- Scale-Location: check homoscedasticity.  
-- Residuals vs Leverage: check influential points.  
 
+\textbf{Linearity:}  
+The Residuals vs Fitted plot does not show strong curvature or a pattern, which indicates that a linear relationship between $X$ and $Y$ is reasonable.
+
+\textbf{Normality:}  
+The Normal Q-Q plot shows the residuals lying approximately along a straight line.It suggests that the normality assumption is reasonable.
+
+\textbf{Constant Variance:}  
+The Scale-Location plot does not display a clear funnel shape. The spread of residuals appears relatively constant across fitted values, supporting the homoscedasticity assumption.
+
+\textbf{Influential Points:}  
+The Residuals vs Leverage plot does not show extreme influential observations based on Cook's distance. Points with moderate leverage (like the one near 0.08) have small residuals, so they are not distorting the fitted line.
 
 c. Perform the following statistical tests with $\alpha = 0.05$ to further evaluate the model assumptions:
 * Shapiro-Wilk test
@@ -328,6 +355,7 @@ H_0: \text{Errors are normally distributed}
 \]
 
 ```{r}
+#install dependencies
 if(!require(randtests)) install.packages("randtests")
 if(!require(lmtest)) install.packages("lmtest")
 if(!require(car)) install.packages("car")
@@ -341,7 +369,8 @@ shapiro_res <- shapiro.test(resid_vec)
 shapiro_res
 ```
 
-Decision rule: reject \(H_0\) if p-value < 0.05.
+The p-value is 0.151. Since $p > 0.05$, we fail to reject $H_0$. There is no significant evidence that the residuals deviate from normality.
+
 
 ---
 
@@ -358,7 +387,7 @@ run_res <- runs.test(resid_vec)
 run_res
 ```
 
-Reject \(H_0\) if p-value < 0.05.
+The p-value is 0.00843. Since $p < 0.05$, we reject $H_0$. There is evidence of non-randomness in the residuals.
 
 ---
 
@@ -379,7 +408,7 @@ dw_res <- dwtest(fit)
 dw_res
 ```
 
-Reject \(H_0\) if p-value < 0.05.
+The p-value is 0.0087. Since $p < 0.05$, we reject $H_0$. There is evidence of positive autocorrelation, indicating that the independence assumption may be violated.
 
 ---
 
@@ -400,11 +429,11 @@ levene_res <- leveneTest(resid_vec ~ group, data = crime)
 levene_res
 ```
 
-Reject \(H_0\) if p-value < 0.05.
+The p-value is 0.564. Since $p > 0.05$, we fail to reject $H_0$. There is no evidence of unequal variances across groups. Note that grouping was artificial since $X$ is quantitative.
 
 ---
 
-#### (5) Breusch–Pagan test
+#### (5) Breusch–Pagan test (Homoscedasticity)
 
 \[
 H_0: \gamma_1 = 0
@@ -415,7 +444,7 @@ bp_res <- bptest(fit)
 bp_res
 ```
 
-Reject \(H_0\) if p-value < 0.05.
+The p-value is 0.938. Since $p > 0.05$, we fail to reject $H_0$. There is strong evidence that the variance is constant.
 
 ---
 
@@ -427,7 +456,7 @@ Requires repeated X levels.
 length(unique(crime$x))
 ```
 
-If the number of distinct \(X\) levels is approximately \(n\), then:
+A formal lack-of-fit test requires replicated $X$ values to estimate pure error. Since most $X$ values are distinct, a classical lack-of-fit test is not appropriate in this setting.
 
 \[
 df_{pure\ error} = n - t = 0
@@ -439,10 +468,6 @@ Therefore, lack-of-fit test is not applicable.
 
 ### Overall Conclusion
 
-- Linearity: assessed via residual plot.  
-- Normality: Q-Q plot and Shapiro–Wilk test.  
-- Independence: Runs test and Durbin–Watson test.  
-- Constant variance: Scale-Location plot, Levene’s test, Breusch–Pagan test.  
-- Lack-of-fit test not valid if no replicated X levels.  
+The linearity, normality, and constant variance assumptions appear reasonable based on both graphical diagnostics and formal tests. However, both the runs test and Durbin--Watson test indicate evidence of dependence (autocorrelation) in the residuals. 
 
-Assumptions are satisfied if p-values > 0.05 and no systematic patterns appear in diagnostic plots.
+Thus, while the regression model suggests a statistically significant negative relationship between education level and crime rate, caution should be exercised because the independence assumption may be violated.
